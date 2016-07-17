@@ -30,7 +30,7 @@ WebView webView;
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
 
             //Todo - return toast here network request feedback?
-            return true;
+            return false;
         }
     }
 }
