@@ -4,14 +4,16 @@ package shyam.android_customlistview;
  * Created by shyamsundardorairaj on 17/07/16.
  */
 
-public class CellContent {
+public class CellContent
+{
 
     private String title;
     private String description;
     private String iconUrl;
     private String actualUrl;
 
-    public CellContent(String title, String description, String iconUrl, String actualUrl) {
+    public CellContent(String title, String description, String iconUrl, String actualUrl)
+    {
         this.title = title;
         this.description = description;
         this.iconUrl = iconUrl;
