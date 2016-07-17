@@ -4,7 +4,13 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,7 +37,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getCellContent();
+        fillContentOnView();
     }
+
+
 
     private void getCellContent()
     {
@@ -65,6 +74,81 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
+
+    private void fillContentOnView()
+    {
+        adapter= new contentListViewAdapter();
+        ListView listView=(ListView) findViewById(R.id.contentListView);
+        listView.setAdapter(adapter);
+    }
+
+
+
+    private class contentListViewAdapter extends ArrayAdapter <CellContent>
+    {
+        public contentListViewAdapter()
+        {
+            super(MainActivity.this,R.layout.row_holder,contentList);
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent)
+        {
+            ViewHolder holder;
+            final float scale = getResources().getDisplayMetrics().density;
+            int iconDimension  = (int) (100 * scale);
+            if (convertView==null)
+            {
+                convertView= getLayoutInflater().inflate(R.layout.row_holder,null);
+                holder=new ViewHolder();
+                holder.title= (TextView) convertView.findViewById(R.id.titleView);
+                holder.description= (TextView) convertView.findViewById(R.id.descriptionView);
+                holder.icon=(ImageView) convertView.findViewById(R.id.iconView);
+                convertView.setTag(holder);
+            }
+            else
+            {
+                holder=(ViewHolder) convertView.getTag();
+            }
+            CellContent currentContent=contentList.get(position);
+            RelativeLayout.LayoutParams lparams= new RelativeLayout.LayoutParams(0,0);
+            String url =currentContent.getIconUrl().trim();
+
+            if (url.isEmpty()==false)
+            {
+                lparams.height=iconDimension;
+                lparams.width=iconDimension;
+
+                //Todo Load Image here
+
+            }
+
+            holder.icon.setLayoutParams(lparams);
+            holder.title.setText(currentContent.getTitle());
+            holder.description.setText(currentContent.getDescription());
+
+            return convertView;
+        }
+
+
+
+    }
+
+    static class ViewHolder
+    {
+        TextView title;
+        TextView description;
+        ImageView icon;
+
+    }
+
+
+
+
+
+
+
+
 
     private class GetJson extends AsyncTask<String, Integer, JSONObject>
     {
