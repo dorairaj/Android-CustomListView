@@ -2,6 +2,7 @@ package shyam.android_customlistview;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -45,8 +46,8 @@ public class MainActivity extends AppCompatActivity
         getCellContent();
         fillContentOnView();
         contentClickListener();
+        refreshViewListener();
     }
-
 
 
 
@@ -106,13 +107,32 @@ public class MainActivity extends AppCompatActivity
                 }
                 catch(Exception e)
                 {
-                    toast=Toast.makeText(getApplicationContext(),"Something Went Wrong,Please try again !",Toast.LENGTH_LONG);
+                    toast=Toast.makeText(getApplicationContext(),"Something Went Wrong,Please try again !",Toast.LENGTH_SHORT);
                     toast.show();
                 }
 
             }
         });
     }
+
+
+
+
+    private void refreshViewListener()
+    {
+        final SwipeRefreshLayout refreshLayout= (SwipeRefreshLayout) findViewById(R.id.swipeRefresh);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                Toast toast=Toast.makeText(getApplicationContext(),"Please Wait! Refreshing..",Toast.LENGTH_SHORT);
+                toast.show();
+                getCellContent();
+                adapter.notifyDataSetChanged();
+                refreshLayout.setRefreshing(false);
+            }});
+    }
+
+
 
 
 
