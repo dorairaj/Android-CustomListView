@@ -12,6 +12,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -118,8 +120,15 @@ public class MainActivity extends AppCompatActivity
             {
                 lparams.height=iconDimension;
                 lparams.width=iconDimension;
-
-                //Todo Load Image here
+                // To load images asynchronously picasso library from github is used
+                try
+                {
+                    Picasso.with(getContext()).load(url).resize(100, 100).into(holder.icon);
+                }
+                catch (Exception e)
+                {
+                    // Some cells may be malformed if this exception occurs
+                }
 
             }
 
