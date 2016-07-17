@@ -2,10 +2,9 @@ package shyam.android_customlistview;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -34,35 +33,43 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
 {
 
-    private List<CellContent> contentList= new ArrayList<>();
-    ArrayAdapter <CellContent> adapter;
-    Toast toast;
-
+    private List<CellContent> contentList= new ArrayList<>(); // List to store collection of contents to be displayed
+    ArrayAdapter <CellContent> adapter; // custom adapter for contentListView
+    Toast toast; // Toast object to provide feedback to user.
+    String refreshToastText ="Please Wait! Refreshing..";
+    String errorToastText ="Something Went Wrong,Please try again.";
+    String loadToastText = "Loading..Please wait..";
+    String imageToastText = "Unable to load some images.";
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getCellContent();
-        fillContentOnView();
-        contentClickListener();
-        refreshViewListener();
+        getCellContent(); // Get Json content from file and store in collection.
+        fillContentOnView(); // populate listview.
+        contentClickListener(); // listview click Listener.
+        refreshViewListener();  // pull down to refresh event listener.
     }
 
 
-
+    /**
+     * getCellContent() gets Json File from URL, Parses the JSON File and creates objects
+     * of CellContent, which is later used to populate contentListView.
+     */
     private void getCellContent()
     {
         contentList.clear();
         try
         {
             JSONObject jsonFile = new GetJson().execute("https://api.myjson.com/bins/1quht").get();
-            Log.i("JsonTest",jsonFile.toString());
+            toast=Toast.makeText(getApplicationContext(),loadToastText,Toast.LENGTH_SHORT);
+            toast.show();
             JSONArray jsonCellContents=jsonFile.getJSONArray("solutions");
             System.out.println(jsonCellContents.toString());
             for (int i=0; i<jsonCellContents.length();i++)
 
             {
+                // Parsing all items of Json array.
                 JSONObject subJson = (JSONObject) jsonCellContents.get(i);
 
                 String title,description,iconUrl,actualUrl;
@@ -79,11 +86,16 @@ public class MainActivity extends AppCompatActivity
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            toast=Toast.makeText(getApplicationContext(),errorToastText,Toast.LENGTH_SHORT);
+            toast.show();
         }
 
     }
 
+    /**
+     * fillContentView() sets the adapter for contentListView, so that contentListView
+     * can be populated
+     */
     private void fillContentOnView()
     {
         adapter= new contentListViewAdapter();
@@ -91,6 +103,11 @@ public class MainActivity extends AppCompatActivity
         listView.setAdapter(adapter);
     }
 
+    /**
+     *  contentClickListener() listens to onClick events on contentListView,
+     *  In event of a click, It calls an Intent which provides a webview to see full-blown content,
+     *  related to the cell.
+     */
     private void contentClickListener()
     {
         ListView listview = (ListView) findViewById(R.id.contentListView);
@@ -103,11 +120,13 @@ public class MainActivity extends AppCompatActivity
                 {
                     Intent intent=new Intent(MainActivity.this,WebActivity.class);
                     intent.putExtra("url",clickedContent.getActualUrl());
+                    toast=Toast.makeText(getApplicationContext(),loadToastText,Toast.LENGTH_SHORT);
+                    toast.show();
                     startActivity(intent);
                 }
                 catch(Exception e)
                 {
-                    toast=Toast.makeText(getApplicationContext(),"Something Went Wrong,Please try again !",Toast.LENGTH_SHORT);
+                    toast=Toast.makeText(getApplicationContext(),errorToastText,Toast.LENGTH_SHORT);
                     toast.show();
                 }
 
@@ -116,7 +135,10 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
+    /**
+     * refreshViewListener() provides pull to refresh feature.
+     * On detecting pull-down gesture, It updates the list view with latest content.
+     */
 
     private void refreshViewListener()
     {
@@ -124,8 +146,6 @@ public class MainActivity extends AppCompatActivity
         refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                Toast toast=Toast.makeText(getApplicationContext(),"Please Wait! Refreshing..",Toast.LENGTH_SHORT);
-                toast.show();
                 getCellContent();
                 adapter.notifyDataSetChanged();
                 refreshLayout.setRefreshing(false);
@@ -133,8 +153,20 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    /**
+     * The following classes provide us with a custom adapter which is used to populate
+     * contents on the listview.
+     */
 
-
+    /**
+     *  To load images asynchronously "picasso" library is used.
+     *  (https://github.com/square/picasso)
+     *  This library provides a simple one line code for loading images asynchronously and
+     *  is generally well-known for its efficiency and performance.
+     *  It is well suited for this project as it provides a simple implementation and does
+     *  the job effectively.
+     *
+     */
 
     private class contentListViewAdapter extends ArrayAdapter <CellContent>
     {
@@ -177,7 +209,9 @@ public class MainActivity extends AppCompatActivity
                 }
                 catch (Exception e)
                 {
-                    // Some cells may be malformed if this exception occurs
+                    // Some cells may be malformed if this exception occurs (broken URL)
+                    toast=Toast.makeText(getApplicationContext(),imageToastText,Toast.LENGTH_SHORT);
+                    toast.show();
                 }
 
             }
@@ -193,6 +227,10 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    /**
+     * extension to our custom adapter class above
+     * It is implemented to improve peerformance by recycling contents of List View.
+     */
     static class ViewHolder
     {
         TextView title;
@@ -202,11 +240,15 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-
-
-
-
+    /**
+     * The GetJson class below reads a Json file from a given Url and returns a Json Object.
+     * The class is implemnted in a seperate thread as network operations cannot be performed
+     * on main thread.
+     * The class and its methods are used while calling,
+     *    JSONObject jsonFile = new GetJson().execute("https://api.myjson.com/bins/1quht").get();
+     *              in getCellContent()
+     *
+     */
 
 
     private class GetJson extends AsyncTask<String, Integer, JSONObject>
@@ -221,7 +263,8 @@ public class MainActivity extends AppCompatActivity
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                toast=Toast.makeText(getApplicationContext(),errorToastText,Toast.LENGTH_SHORT);
+                toast.show();
             }
             finally
             {
@@ -241,7 +284,8 @@ public class MainActivity extends AppCompatActivity
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                toast=Toast.makeText(getApplicationContext(),errorToastText,Toast.LENGTH_SHORT);
+                toast.show();
             }
             finally
             {
@@ -260,4 +304,7 @@ public class MainActivity extends AppCompatActivity
             return sb.toString();
         }
     }
+
+
+
 }
